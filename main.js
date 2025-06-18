@@ -161,9 +161,9 @@ function canonicalizeFace(face) {
 }
 
 function canonicalState([topFace, botFace]) {
-    const cannonTop = canonicalizeFace(topFace);
-    const cannonBot = canonicalizeFace(botFace);
-    return cannonTop + "," + cannonBot;
+    const canonTop = canonicalizeFace(topFace);
+    const canonBot = canonicalizeFace(botFace);
+    return ([canonTop, canonBot])
 }
 
 async function bidirectionalBFS(start, goal) {
@@ -216,21 +216,21 @@ function expandLayer(queue, visitedThisSide, visitedOtherSide) {
         //console.log("added flipped state: " + flipCube(state.split(',')));
 
         //check for rotation only match
-        for (let newRotatedRawState of justRotations) {
-            const newRotatedState = strState(newRotatedRawState);
+        // for (let newRotatedRawState of justRotations) {
+        //     const newRotatedState = strState(newRotatedRawState);
 
-            if (visitedThisSide.has(newRotatedState)) continue;
+        //     if (visitedThisSide.has(newRotatedState)) continue;
 
-            if (visitedOtherSide.has(newRotatedState)) {
-                console.log("found mid node with rotation only.")
-                console.log("mid node: " + newRotatedState)
-                visitedThisSide.set(newRotatedState, state);
-                return { meetNode: newRotatedState };
-            }
-        }
+        //     if (visitedOtherSide.has(newRotatedState)) {
+        //         console.log("found mid node with rotation only.")
+        //         console.log("mid node: " + newRotatedState)
+        //         visitedThisSide.set(newRotatedState, state);
+        //         return { meetNode: newRotatedState };
+        //     }
+        // }
 
         for (let newStateRaw of newStates) {
-            const newState = strState(newStateRaw);
+            const newState = strState(canonicalState(newStateRaw));
 
             if (visitedThisSide.has(newState)) continue;
 
@@ -254,16 +254,6 @@ function expandLayer(queue, visitedThisSide, visitedOtherSide) {
 }
 
 function reconstructPathBruteForce(meetNode, start, goal, visitedForward, visitedReverse) {
-    // Invert move helper same as before
-    function invertMove(move) {
-        if (move === 'flip') return 'flip';
-        if (move.startsWith('r')) {
-            const [i, j] = move.slice(1).split(',').map(Number);
-            return `r${(6 - i) % 6},${(6 - j) % 6}`;
-        }
-        return move;
-    }
-
     const pathFromStart = [];
     let current = meetNode;
     while (current !== null) {
@@ -280,6 +270,7 @@ function reconstructPathBruteForce(meetNode, start, goal, visitedForward, visite
     }
 
     const fullPath = pathFromStart.concat(pathFromGoal);
+    
 
     let output = "start: ".padEnd(10) + printState(start) + "\n"
     let currentState = start;
@@ -294,6 +285,16 @@ function reconstructPathBruteForce(meetNode, start, goal, visitedForward, visite
         if (nextState == currentState) {
             console.log("duplicate face.")
             continue;
+        }
+
+
+        let lastRt = 0;
+        let lastRb = 0;
+
+        for (let rt = 0; rt < 12; rt++) {
+            for (let rb = 0; rb < 12; rb++) {
+                
+            }
         }
 
         for (let rt = 0; rt < 12; rt++) {
@@ -327,9 +328,11 @@ function reconstructPathBruteForce(meetNode, start, goal, visitedForward, visite
                         for (let rbb = 0; rbb < 12; rbb++) {
                             let rotFlipRot = rotateFaces(rtb, rbb, flipCube(rotateFaces(rta, rba, currentState)))
                             if (strState(rotFlipRot) == strState(nextState)) {
-                                output += ("r" + rta + "," + rba + ": ").padEnd(10) + printState(rotateFaces(rta, rba, currentState)) + "\n"
+                                output += ("r" + (rta + lastRt) + "," + (rba + lastRb) + ": ").padEnd(10) + printState(rotateFaces(rta, rba, currentState)) + "\n"
                                 output += ("flip: ").padEnd(10) + printState(flipCube(rotateFaces(rta, rba, currentState))) + "\n"
-                                output += ("r" + rtb + "," + rbb + ": ").padEnd(10) + printState(rotFlipRot) + "\n"
+                                //output += ("r" + rtb + "," + rbb + ": ").padEnd(10) + printState(rotFlipRot) + "\n"
+                                lastRt = rtb;
+                                lastRb = rtb;
                                 success = true;
                                 console.log("did rot flip rot")
                             }
@@ -522,6 +525,8 @@ stepButton.disabled = true;
 
 let currentLineIndex = 1;
 async function handleSolveButtonClick() {
+    stepButton.disabled = true;
+    
     const topFaceInput = topFaceInputBox.value;
     const botFaceInput = botFaceInputBox.value;
 
@@ -564,6 +569,9 @@ function handleStepButtonClick() {
     let state = lines[currentLineIndex].split(':')[1].trim();
     console.log("found valid line: " + lines[currentLineIndex]);
     drawStateOnCanvas(state.split(','));
+
+    if (lines[currentLineIndex + 1].indexOf(':') == -1)
+        stepButton.disabled = true;
 }
 
 function showInstructionsButtonClick() {
@@ -575,6 +583,7 @@ function showInstructionsButtonClick() {
 }
 
 function setRandomCubeButtonClick() {
+    stepButton.disabled = true;
     [topFaceStart, botFaceStart] = solvedState;
     let currentState = [topFaceStart, botFaceStart];
     for (let i = 0; i < 100; i++) {
@@ -587,4 +596,6 @@ function setRandomCubeButtonClick() {
 
     topFaceInputBox.value = decodeFaceString(currentState[0])
     botFaceInputBox.value = decodeFaceString(currentState[1])
+
+    currentLineIndex = 1;
 }

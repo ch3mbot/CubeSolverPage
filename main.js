@@ -540,6 +540,7 @@ stepButton.disabled = true;
 let currentLineIndex = 0;
 async function handleSolveButtonClick() {
     stepButton.disabled = true;
+    currentLineIndex = 0;
     
     const topFaceInput = topFaceInputBox.value;
     const botFaceInput = botFaceInputBox.value;

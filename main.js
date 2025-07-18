@@ -360,6 +360,7 @@ const ctx = canvas.getContext('2d');
 const exS = 1;
 const exE = 1.1;
 const shsScale = 0.9;
+const splitLineThickness = 10;
 
 const parPoint = Math.tan(Math.PI / 12)
 const trigPoints = [
@@ -403,6 +404,11 @@ const squarePoints = [
     [1, 0],
 ]
 
+const linePoints = [
+    [parPoint, 1],
+    [-parPoint, -1]
+]
+
 const colorMap = {
   R: "red",
   G: "green",
@@ -434,7 +440,7 @@ function drawStateOnCanvas([topFace, botFace]) {
     const data = imageData.data;
     
     // Function to draw polygon from array of points
-    function drawPolygon(points, border, fill) {
+    function drawPolygon(points, border, fill, lineWidth = 2) {
         if (points.length < 2) return;  // Need at least 2 points to draw
 
         ctx.beginPath();
@@ -448,7 +454,7 @@ function drawStateOnCanvas([topFace, botFace]) {
         ctx.closePath();  // Close the polygon by connecting last point to first
 
         ctx.strokeStyle = border;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = lineWidth;
         ctx.stroke();
 
         ctx.fillStyle = fill;
@@ -491,9 +497,17 @@ function drawStateOnCanvas([topFace, botFace]) {
         }
     }
 
+    function drawLine(center, thickness) {
+        drawPolygon(formatPolygon(linePoints, r, center, 0), 'black', 'black', thickness)
+    }
+
+
     function drawState([topFace, botFace]) {
         drawFace(topFace, true, topCenter)
         drawFace(botFace, true, botCenter)
+        drawLine(topCenter, splitLineThickness)
+        drawLine(botCenter, splitLineThickness)
+        
     }
 
     function drawFace(face, top, center) {
@@ -523,7 +537,7 @@ const topFaceInputBox = document.getElementById("topFaceInput");
 const botFaceInputBox = document.getElementById("botFaceInput");
 stepButton.disabled = true;
 
-let currentLineIndex = 1;
+let currentLineIndex = 0;
 async function handleSolveButtonClick() {
     stepButton.disabled = true;
     
@@ -559,6 +573,7 @@ async function handleSolveButtonClick() {
 // horrible and hacky but fine
 function handleStepButtonClick() {
     currentLineIndex++;
+    console.log("current line index: " + currentLineIndex)
     const lines = output.textContent.split('\n');
     if (currentLineIndex >= lines.length) {
         return;
@@ -597,5 +612,5 @@ function setRandomCubeButtonClick() {
     topFaceInputBox.value = decodeFaceString(currentState[0])
     botFaceInputBox.value = decodeFaceString(currentState[1])
 
-    currentLineIndex = 1;
+    currentLineIndex = 0;
 }

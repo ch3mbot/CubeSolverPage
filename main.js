@@ -479,8 +479,8 @@ function drawStateOnCanvas([topFace, botFace]) {
     function drawPiece(num, pieceStr, top, center) {
         let primary = pieceStr[0]
             let secondary = pieceStr[1]
-        if (!top) num++;
-        
+        if (top) num++;
+
         if (pieceStr.length == 2) {
             let angle = tick * (num + 3);
             drawPolygon(formatPolygon(trigPoints, r * shsScale, center, angle), 'black', colorMap[primary])
@@ -497,16 +497,16 @@ function drawStateOnCanvas([topFace, botFace]) {
         }
     }
 
-    function drawLine(center, thickness) {
-        drawPolygon(formatPolygon(linePoints, r, center, 0), 'black', 'black', thickness)
+    function drawLine(center, top, thickness) {
+        drawPolygon(formatPolygon(linePoints, r, center, top ? tick : 0), 'black', 'black', thickness)
     }
 
 
     function drawState([topFace, botFace]) {
         drawFace(topFace, true, topCenter)
-        drawFace(botFace, true, botCenter)
-        drawLine(topCenter, splitLineThickness)
-        drawLine(botCenter, splitLineThickness)
+        drawFace(botFace, false, botCenter)
+        drawLine(topCenter, true, splitLineThickness)
+        drawLine(botCenter, false, splitLineThickness)
         
     }
 
